@@ -64,4 +64,21 @@ describe('Routes', () => {
     expect(recipe).toBeDefined();
     expect(recipe.title).toBe(newRecipe.title);
   });
+
+  test('deleted recipe should return 404', async () => {
+    await db.run('INSERT INTO recipes (title, ingredients, method) VALUES (?, ?, ?)', [
+      'Recipe To Delete',
+      'Ingredient',
+      'Method'
+    ]);
+    const recipe = await db.get('SELECT * FROM recipes WHERE title = ?', ['Recipe To Delete']);
+
+    const deleteResponse = await request(app).delete(`/recipes/${recipe.id}`);
+    expect(deleteResponse.status).toBe(204);
+
+    const getResponse = await request(app).get(`/recipes/${recipe.id}`);
+    expect(getResponse.status).toBe(404);
+    expect(getResponse.body.view).toBe('recipe');
+    expect(getResponse.body.locals.recipe).toBeNull();
+  });
 });
