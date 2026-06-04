@@ -97,4 +97,10 @@ describe('Routes', () => {
     expect(getResponse.body.view).toBe('recipe');
     expect(getResponse.body.locals.recipe).toBeNull();
   });
+
+  test('DELETE /recipes/:id should return 404 when recipe does not exist', async () => {
+    const response = await request(app).delete('/recipes/999999');
+    expect(response.status).toBe(404);
+    expect(response.body.error).toBe('Recipe not found');
+  });
 });
