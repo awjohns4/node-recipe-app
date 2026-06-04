@@ -5,12 +5,15 @@
     </div>
     
     <!-- Add Recipe Form (initially hidden) -->
-    <div id="add-recipe-form" class="recipe-form" style="display: none;">
+    <div id="add-recipe-form" class="recipe-form" style="display: {{#if error}}block{{else}}none{{/if}};">
         <h2>Add New Recipe</h2>
+        {{#if error}}
+            <p>{{error}}</p>
+        {{/if}}
         <form action="/recipes" method="POST">
             <div class="form-group">
                 <label for="title">Recipe Title:</label>
-                <input type="text" id="title" name="title" required>
+                <input type="text" id="title" name="title" required pattern=".*\S.*" title="Title cannot be empty">
             </div>
             
             <div class="form-group">

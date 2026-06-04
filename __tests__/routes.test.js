@@ -64,4 +64,58 @@ describe('Routes', () => {
     expect(recipe).toBeDefined();
     expect(recipe.title).toBe(newRecipe.title);
   });
+
+  test('POST /recipes should return 400 when title is empty', async () => {
+    const response = await request(app)
+      .post('/recipes')
+      .send({
+        title: '   ',
+        ingredients: 'Test ingredients',
+        method: 'Test method'
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe('Title is required');
+
+    const recipeCount = await db.get('SELECT COUNT(*) as count FROM recipes');
+    expect(recipeCount.count).toBe(0);
+  });
+
+  test('POST /recipes should return HTML response when form title is empty', async () => {
+    const response = await request(app)
+      .post('/recipes')
+      .type('form')
+      .send({
+        title: '   ',
+        ingredients: 'Test ingredients',
+        method: 'Test method'
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.view).toBe('recipes');
+    expect(response.body.locals.error).toBe('Title is required');
+  });
+
+  test('deleted recipe should return 404', async () => {
+    await db.run('INSERT INTO recipes (title, ingredients, method) VALUES (?, ?, ?)', [
+      'Recipe To Delete',
+      'Ingredient',
+      'Method'
+    ]);
+    const recipe = await db.get('SELECT * FROM recipes WHERE title = ?', ['Recipe To Delete']);
+
+    const deleteResponse = await request(app).delete(`/recipes/${recipe.id}`);
+    expect(deleteResponse.status).toBe(204);
+
+    const getResponse = await request(app).get(`/recipes/${recipe.id}`);
+    expect(getResponse.status).toBe(404);
+    expect(getResponse.body.view).toBe('recipe');
+    expect(getResponse.body.locals.recipe).toBeNull();
+  });
+
+  test('DELETE /recipes/:id should return 404 when recipe does not exist', async () => {
+    const response = await request(app).delete('/recipes/999999');
+    expect(response.status).toBe(404);
+    expect(response.body.error).toBe('Recipe not found');
+  });
 });
