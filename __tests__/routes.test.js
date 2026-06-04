@@ -81,6 +81,21 @@ describe('Routes', () => {
     expect(recipeCount.count).toBe(0);
   });
 
+  test('POST /recipes should return HTML response when form title is empty', async () => {
+    const response = await request(app)
+      .post('/recipes')
+      .type('form')
+      .send({
+        title: '   ',
+        ingredients: 'Test ingredients',
+        method: 'Test method'
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.view).toBe('recipes');
+    expect(response.body.locals.error).toBe('Title is required');
+  });
+
   test('deleted recipe should return 404', async () => {
     await db.run('INSERT INTO recipes (title, ingredients, method) VALUES (?, ?, ?)', [
       'Recipe To Delete',
